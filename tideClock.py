@@ -1,16 +1,99 @@
 import datetime
 import sqlite3
+from gpiozero import OutputDevice, Button
+from time import sleep
+import argparse
 
 DBPATH = '/home/rob/local_work/TideClock/barnstaple_tide_heights'
 STEPS = 200
 HIGH = STEPS * 0.25
 LOW = STEPS * 0.75
-CONN = sqlite3.connect(DBPATH)
 TABLE = 'barnstaple2025'
-CURSOR = CONN.cursor()
 
 data_range = False
 data_month_range = False
+
+argparser = argparse.ArgumentParser()
+argparser.add_argument('-t', action='store_true', help='clock type: height, lunar, direction', default='height', dest='type')
+args = argparser.parse_args()
+
+class Stepper:
+    def __init__(self):
+        self.STEP = OutputDevice(26)
+        self.sensor = Button(6)
+        self.MOTOR_STEPS = 200
+        self.MICRO = 8
+        self.MICROSTEP = 1 / self.MICRO
+        self.STEPS = self.MOTOR_STEPS * self.MICRO
+        self.position = 0.0  # Current position in steps
+        self.zeroed = False
+        self.zero()
+        
+    def step(self):
+        self.STEP.on()
+        sleep(0.001)
+        self.STEP.off()
+        sleep(0.001)
+        if self.position > STEPS:
+            self.position = 0.0
+        else:
+            self.position += self.MICROSTEP
+    
+    def zero(self):
+        if not self.zeroed:
+            print("Zeroing stepper...")
+            start = None
+            stop = None
+            # Make sure sensor isn't already triggered
+            while self.sensor.is_pressed:
+                self.step()
+            # Rotate till sensor triggered
+            while not self.sensor.is_pressed:
+                self.step()
+            start = self.position
+            print(f"Sensor triggered at position {start}")
+            # Continue till sensor not triggered
+            while self.sensor.is_pressed:
+                self.step()
+            stop = self.position
+            if stop < start:
+                stop += STEPS
+            print(f"Sensor released at position {stop}")
+            # Mid point is zero
+            triggered_range = abs(stop - start)
+            triggered_steps = int(triggered_range / self.MICROSTEP)
+            mid = start + (self.MICROSTEP * (triggered_steps // 2))
+            print(f"Zero position set to {mid}")
+            # Step to mid
+            while self.position != mid:
+                self.step()
+                # print("self.position:", self.position, "mid:", mid)
+                # sleep(0.01)
+            self.position = 0.0
+            self.zeroed = True
+            print("Zeroing complete.")
+        else:
+            while self.position != 0:
+                self.step()
+                self.position += self.MICROSTEP 
+            if not self.sensor.is_pressed:
+                print("Warning: zeroing but sensor not active!")
+                self.zeroed = False
+                self.zero()
+                
+
+    def moveTo(self, target):
+        if target == self.position:
+            return
+        # Zero if needed
+        if target == 0 or target < self.position:
+            self.zero()
+            if target == 0:
+                return
+        # Step to position
+        while self.position < target:
+            self.step()
+            self.position += self.MICROSTEP
 
 def getRange():
     now = datetime.datetime.now().timestamp()
@@ -57,10 +140,7 @@ def findNeapSpring(data, currentIndex):
     
     print(f"Max height_diff: { max_row} at index {max_index}, {data[max_index]}")
     print(f"Min height_diff: { min_row} at index {min_index}, {data[min_index]}")
-    return min_row, max_row
-
-        
-        
+    return min_row, max_row           
 
 def tideStepperPos(prev, next):
     ebb_flow_time = next[0] - prev[0]
@@ -73,20 +153,25 @@ def tideStepperPos(prev, next):
     return int((STEPS / 2) * proportion) + dir_mod
 
 if __name__ == "__main__":
-    if not data_range:
-        data_range = getRange()
-    if not data_month_range:
-        data_month_range = getMonthRange()
-    now = datetime.datetime.now().timestamp()
-    cur_index = findPosIndex(data_range, now)
-    print(cur_index)
-    month_index = findPosIndex(data_month_range, now)
+    stepper = Stepper()
+    # CONN = sqlite3.connect(DBPATH)
+    # CURSOR = CONN.cursor()
+    # if not data_range:
+    #     data_range = getRange()
+    # if not data_month_range:
+    #     data_month_range = getMonthRange()
+    # now = datetime.datetime.now().timestamp()
+    # cur_index = findPosIndex(data_range, now)
+    # # print(cur_index)
+    # month_index = findPosIndex(data_month_range, now)
     
-    if cur_index:
-        tideStep = tideStepperPos(cur_index[0], cur_index[1])
-        print(tideStep)
+    # if cur_index:
+    #     tideStep = tideStepperPos(cur_index[0], cur_index[1])
+    #     print("Tide Step: %d" % tideStep)
     
-    if month_index:
-        before, after = findNeapSpring(data_month_range, month_index[2])
-        neapSpringStep = tideStepperPos(before, after)
-        print(neapSpringStep)
+    # if month_index:
+    #     before, after = findNeapSpring(data_month_range, month_index[2])
+    #     neapSpringStep = tideStepperPos(before, after)
+    #     print("Neap Spring Step: %d" % neapSpringStep)
+        
+    
