@@ -13,7 +13,7 @@ def generate_timestamps(db_path, table_name):
     # Fetch all timestamps
     date_times = cursor.fetchall()
     for date, time in date_times:
-        dt = datetime.datetime.strptime(f"{date} {time}", "%d/%m/%y %H:%M:%S")
+        dt = datetime.datetime.strptime(f"{date} {time}", "%d/%m/%Y %H:%M:%S")
         ts = int(dt.timestamp())
         # print(dt.timestamp())
         insert = f"UPDATE {table_name} SET timestamp = {ts} WHERE date = '{date}' AND time = '{time}'"
@@ -46,7 +46,7 @@ def genHeightDiffs(db_path, table_name):
 
 if __name__ == "__main__":
     db_path = 'barnstaple_tide_heights'
-    table_name = 'barnstaple2025'
+    table_name = 'Barnstable_2025_2075'
 
     # timestamps = generate_timestamps(db_path, table_name)
     genHeightDiffs(db_path, table_name)
