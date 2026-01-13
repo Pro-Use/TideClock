@@ -1,26 +1,21 @@
 import datetime
 import sqlite3
 from gpiozero import OutputDevice, Button
-from time import sleep
-import argparse
+from time import sleep, time
 
 DBPATH = '/home/rob/local_work/TideClock/barnstaple_tide_heights'
 STEPS = 200
 HIGH = STEPS * 0.25
 LOW = STEPS * 0.75
-TABLE = 'barnstaple2025'
+TABLE = 'Barnstaple_2025_2075'
 
 data_range = False
 data_month_range = False
 
-argparser = argparse.ArgumentParser()
-argparser.add_argument('-t', action='store_true', help='clock type: height, lunar, direction', default='height', dest='type')
-args = argparser.parse_args()
-
 class Stepper:
-    def __init__(self):
-        self.STEP = OutputDevice(26)
-        self.sensor = Button(6)
+    def __init__(self, motor_pin, sensor_pin):
+        self.STEP = OutputDevice(motor_pin)
+        self.sensor = Button(sensor_pin)
         self.MOTOR_STEPS = 200
         self.MICRO = 8
         self.MICROSTEP = 1 / self.MICRO
@@ -153,25 +148,39 @@ def tideStepperPos(prev, next):
     return int((STEPS / 2) * proportion) + dir_mod
 
 if __name__ == "__main__":
-    stepper = Stepper()
-    # CONN = sqlite3.connect(DBPATH)
-    # CURSOR = CONN.cursor()
-    # if not data_range:
-    #     data_range = getRange()
-    # if not data_month_range:
-    #     data_month_range = getMonthRange()
-    # now = datetime.datetime.now().timestamp()
-    # cur_index = findPosIndex(data_range, now)
-    # # print(cur_index)
-    # month_index = findPosIndex(data_month_range, now)
-    
-    # if cur_index:
-    #     tideStep = tideStepperPos(cur_index[0], cur_index[1])
-    #     print("Tide Step: %d" % tideStep)
-    
-    # if month_index:
-    #     before, after = findNeapSpring(data_month_range, month_index[2])
-    #     neapSpringStep = tideStepperPos(before, after)
-    #     print("Neap Spring Step: %d" % neapSpringStep)
+    tideHeight = Stepper(motor_pin=26, sensor_pin=19)
+    neapSpring = Stepper(motor_pin=13, sensor_pin=6)
+    ebbFlow = Stepper(motor_pin=5, sensor_pin=11)
+    CONN = sqlite3.connect(DBPATH)
+    CURSOR = CONN.cursor()
+
+    while True:
+        future = time() + 60
+        #Tide Height
+        data_range = getRange()
+        now = datetime.datetime.now().timestamp()
+        cur_index = findPosIndex(data_range, now)
+        tideStep = tideStepperPos(cur_index[0], cur_index[1])
+        print("Tide Step: %d" % tideStep)
+        sleep(60)
+        #TODO Ebb Flow - phase shift...
         
+        #lunar
+        data_month_range = getMonthRange()
+        now = datetime.datetime.now().timestamp()
+        month_index = findPosIndex(data_month_range, now)
+        before, after = findNeapSpring(data_month_range, month_index[2])
+        neapSpringStep = tideStepperPos(before, after)
+        print("Neap Spring Step: %d" % neapSpringStep)
+        sleep(60)
+        # Move steppers
+        tideHeight.moveTo(tideStep)
+        neapSpring.moveTo(neapSpringStep)
+        # TODO ebb flow
+        
+        # sleep
+        delay = future - time()
+        if delay > 0:
+            sleep(delay)
+    
     
