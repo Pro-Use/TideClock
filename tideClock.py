@@ -33,6 +33,7 @@ class Stepper:
             self.position = 0.0
         else:
             self.position += self.MICROSTEP
+        print("Stepping... Current position: %.2f" % self.position)
     
     def zero(self):
         if not self.zeroed:
@@ -89,7 +90,7 @@ class Stepper:
         # Step to position
         while self.position < target:
             self.step()
-            self.position += self.MICROSTEP
+            # self.position += self.MICROSTEP
 
 def getRange():
     now = datetime.datetime.now().timestamp()
