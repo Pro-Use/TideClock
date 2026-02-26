@@ -70,9 +70,9 @@ class Stepper:
             print("Zeroing complete.")
             sleep(2)
         else:
+            print("Already zeroed, moving and checking sensor...")
             while self.position != 0:
                 self.step()
-                self.position += self.MICROSTEP 
             if not self.sensor.is_pressed:
                 print("Warning: zeroing but sensor not active!")
                 self.zeroed = False
