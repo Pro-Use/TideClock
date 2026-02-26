@@ -1,0 +1,12 @@
+[Unit]
+Description=TideClock
+StartLimitIntervalSec=0
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/usr/bin/python /home/pi/tideClock.py
+
+[Install]
+WantedBy=default.target
