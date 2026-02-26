@@ -16,7 +16,7 @@ class Stepper:
     def __init__(self, motor_pin, sensor_pin):
         self.STEP = OutputDevice(motor_pin)
         self.sensor = Button(sensor_pin)
-        self.MOTOR_STEPS = 200
+        self.MOTOR_STEPS = 199
         self.MICRO = 8
         self.MICROSTEP = 1 / self.MICRO
         self.STEPS = self.MOTOR_STEPS * self.MICRO
