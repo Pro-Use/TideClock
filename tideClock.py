@@ -33,7 +33,9 @@ class Stepper:
             self.position = 0.0
         else:
             self.position += self.MICROSTEP
-        print("Stepping... Current position: %.2f" % self.position)
+        
+        if self.position.is_integer():
+            print("Stepping... Current position: %.2f" % self.position)
     
     def zero(self):
         if not self.zeroed:
