@@ -95,7 +95,11 @@ class Stepper:
     def earlyZeroCheck(self):
         if self.sensor.is_pressed:
             # Check both ranges either side of zero
-            if not (self.triggered_start <= self.position <= self.MOTOR_STEPS) or not (0 <= self.position <= self.triggered_stop):
+            if not (self.triggered_start <= self.position <= self.MOTOR_STEPS):
+                return  
+            if not (0 <= self.position <= self.triggered_stop):
+                return
+            else:
                 print("Warning: not zero target but sensor is active! Position: %.2f start: %.2f stop: %.2f" % (self.position, self.triggered_start, self.triggered_stop))
                 self.zeroed = False
                 self.zero()
