@@ -12,6 +12,7 @@ TABLE = 'Barnstable_2025_2075'
 data_range = False
 data_month_range = False
 
+
 class Stepper:
     def __init__(self, motor_pin, sensor_pin):
         self.STEP = OutputDevice(motor_pin)
@@ -21,6 +22,9 @@ class Stepper:
         self.MICROSTEP = 1 / self.MICRO
         self.STEPS = self.MOTOR_STEPS * self.MICRO
         self.position = 0.0  # Current position in steps
+        self.triggered_steps = False
+        self.triggered_start = 0
+        self.triggered_stop = 0
         self.zeroed = False
         self.zero()
         
@@ -50,17 +54,24 @@ class Stepper:
                 self.step()
             start = self.position
             print(f"Sensor triggered at position {start}")
-            # Continue till sensor not triggered
-            while self.sensor.is_pressed:
-                self.step()
-            stop = self.position
-            if stop < start:
-                stop += STEPS
-            print(f"Sensor released at position {stop}")
-            # Mid point is zero
-            triggered_range = abs(stop - start)
-            triggered_steps = int(triggered_range / self.MICROSTEP)
-            mid = start + (self.MICROSTEP * (triggered_steps // 2))
+            # If range of sensor is unknown, continue to find it
+            if not self.triggered_steps:
+                # Continue till sensor not triggered
+                while self.sensor.is_pressed:
+                    self.step()
+                stop = self.position
+                if stop < start:
+                    stop += STEPS
+                print(f"Sensor released at position {stop}")
+                # Mid point is zero
+                triggered_range = abs(stop - start)
+                self.triggered_steps = int(triggered_range / self.MICROSTEP)
+                self.triggered_start = self.MOTOR_STEPS - (self.MICROSTEP * (self.triggered_steps // 2))
+                self.triggered_stop = 0 + (self.MICROSTEP * (self.triggered_steps // 2))
+                print(f"Sensor triggered range is {self.triggered_steps} microsteps", f"from {self.triggered_start} to {self.triggered_stop} in motor steps")
+            else:
+                print(f"Sensor stop is position {start + (self.triggered_steps * self.MICROSTEP)}")
+            mid = start + (self.MICROSTEP * (self.triggered_steps // 2))
             print(f"Zero position set to {mid}")
             # Step to mid
             while self.position != mid:
@@ -80,19 +91,37 @@ class Stepper:
                 self.zeroed = False
                 self.zero()
                 
+    def earlyZeroCheck(self):
+        if self.sensor.is_pressed:
+            # Check both ranges either side of zero
+            if not (self.triggered_start < self.position < self.MOTOR_STEPS) and not (0 <= self.position < self.triggered_stop):
+                print("Warning: not zero target but sensor is active!")
+                self.zeroed = False
+                self.zero()
+    
+    def lateZeroCheck(self):
+        if not self.sensor.is_pressed:
+            print("Warning: zero position but sensor not active!")
+            self.zeroed = False
+            self.zero()
 
     def moveTo(self, target):
         if target == self.position:
             return
         # Zero if needed
-        if target == 0 or target < self.position:
-            self.zero()
+        if target == 0 or self.position > target:
+            while self.position > 0:
+                self.step()
+                self.earlyZeroCheck()
             if target == 0:
+                # check sensor
+                self.lateZeroCheck()
                 return
         # Step to position
         while self.position < target:
             self.step()
-            # self.position += self.MICROSTEP
+            self.earlyZeroCheck()
+            
 
 def getRange():
     now = datetime.datetime.now().timestamp()
