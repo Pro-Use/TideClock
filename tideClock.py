@@ -71,7 +71,7 @@ class Stepper:
                 print(f"Sensor triggered range is {self.triggered_steps} microsteps", f"from {self.triggered_start} to {self.triggered_stop} in motor steps")
             else:
                 print(f"Sensor stop is position {start + (self.triggered_steps * self.MICROSTEP)}")
-            mid = start + (self.MICROSTEP * (self.triggered_steps // 2))
+            mid = (start + (self.MICROSTEP * (self.triggered_steps // 2))) % self.MOTOR_STEPS
             print(f"Zero position set to {mid}")
             # Step to mid
             while self.position != mid:
