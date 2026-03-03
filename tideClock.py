@@ -4,7 +4,7 @@ from gpiozero import OutputDevice, Button
 from time import sleep, time
 
 DBPATH = '/home/pi/barnstaple_tide_heights'
-STEPS = 200
+STEPS = 199
 HIGH = STEPS * 0.25
 LOW = STEPS * 0.75
 TABLE = 'Barnstable_2025_2075'
@@ -34,7 +34,7 @@ class Stepper:
         sleep(0.001)
         self.STEP.off()
         sleep(0.001)
-        if self.position > STEPS:
+        if self.position > self.MOTOR_STEPS:
             self.position = 0.0
         else:
             self.position += self.MICROSTEP
@@ -62,7 +62,7 @@ class Stepper:
                     self.step()
                 stop = self.position
                 if stop < start:
-                    stop += STEPS
+                    stop += self.MOTOR_STEPS
                 print(f"Sensor released at position {stop}")
                 # Mid point is zero
                 triggered_range = abs(stop - start)
