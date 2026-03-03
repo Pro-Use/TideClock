@@ -8,7 +8,7 @@ STEPS = 199
 HIGH = STEPS * 0.25
 LOW = STEPS * 0.75
 TABLE = 'Barnstable_2025_2075'
-TOLERANCE = 0.5
+TOLERANCE = 1
 
 data_range = False
 data_month_range = False
