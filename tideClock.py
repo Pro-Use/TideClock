@@ -34,7 +34,7 @@ class Stepper:
         sleep(0.001)
         self.STEP.off()
         sleep(0.001)
-        if self.position > self.MOTOR_STEPS:
+        if self.position >= self.MOTOR_STEPS:
             self.position = 0.0
         else:
             self.position += self.MICROSTEP
@@ -100,7 +100,7 @@ class Stepper:
             if (0 <= self.position <= self.triggered_stop):
                 return
             else:
-                print("Warning: not zero target but sensor is active! Position: %.2f start: %.2f stop: %.2f" % (self.position, self.triggered_start, self.triggered_stop))
+                print("Warning: not zero target but sensor is active! Position: %.4f start: %.4f stop: %.4f" % (self.position, self.triggered_start, self.triggered_stop))
                 self.zeroed = False
                 self.zero()
     
