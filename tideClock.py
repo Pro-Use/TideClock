@@ -8,6 +8,7 @@ STEPS = 200
 HIGH = STEPS * 0.25
 LOW = STEPS * 0.75
 TABLE = 'Barnstable_2025_2075'
+TOLERANCE = 0.5
 
 data_range = False
 data_month_range = False
@@ -94,7 +95,7 @@ class Stepper:
     def earlyZeroCheck(self):
         if self.sensor.is_pressed:
             # Check both ranges either side of zero
-            if not (self.triggered_start <= self.position <= self.MOTOR_STEPS) and not (0 <= self.position <= self.triggered_stop):
+            if not (self.triggered_start <= self.position <= self.MOTOR_STEPS) or not (0 <= self.position <= self.triggered_stop):
                 print("Warning: not zero target but sensor is active! Position: %.2f start: %.2f stop: %.2f" % (self.position, self.triggered_start, self.triggered_stop))
                 self.zeroed = False
                 self.zero()
