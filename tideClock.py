@@ -33,7 +33,7 @@ class Stepper:
         self.STEP.on()
         sleep(0.001)
         self.STEP.off()
-        sleep(0.05)
+        sleep(0.001)
         if self.position >= self.MOTOR_STEPS:
             self.position = 0.0
         else:
