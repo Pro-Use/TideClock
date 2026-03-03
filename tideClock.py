@@ -68,7 +68,9 @@ class Stepper:
                 triggered_range = abs(stop - start)
                 self.triggered_steps = int(triggered_range / self.MICROSTEP)
                 self.triggered_start = self.MOTOR_STEPS - (self.MICROSTEP * (self.triggered_steps // 2))
+                self.triggered_start -= TOLERANCE
                 self.triggered_stop = 0 + (self.MICROSTEP * (self.triggered_steps // 2))
+                self.triggered_stop += TOLERANCE
                 print(f"Sensor triggered range is {self.triggered_steps} microsteps", f"from {self.triggered_start} to {self.triggered_stop} in motor steps")
             else:
                 print(f"Sensor stop is position {start + (self.triggered_steps * self.MICROSTEP)}")
