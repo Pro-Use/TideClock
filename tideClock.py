@@ -84,7 +84,6 @@ class Stepper:
             self.position = 0.0
             self.zeroed = True
             print("Zeroing complete.")
-            sleep(2)
         else:
             print("Already zeroed, moving and checking sensor...")
             while self.position != 0:
