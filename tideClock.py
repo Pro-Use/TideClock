@@ -4,7 +4,7 @@ from gpiozero import OutputDevice, Button
 from time import sleep, time
 
 DBPATH = '/home/pi/barnstaple_tide_heights'
-STEPS = 199
+STEPS = 200
 HIGH = STEPS * 0.25
 LOW = STEPS * 0.75
 TABLE = 'Barnstable_2025_2075'
@@ -18,7 +18,7 @@ class Stepper:
     def __init__(self, motor_pin, sensor_pin):
         self.STEP = OutputDevice(motor_pin)
         self.sensor = Button(sensor_pin)
-        self.MOTOR_STEPS = 199
+        self.MOTOR_STEPS = 200
         self.MICRO = 8
         self.MICROSTEP = 1 / self.MICRO
         self.STEPS = self.MOTOR_STEPS * self.MICRO
