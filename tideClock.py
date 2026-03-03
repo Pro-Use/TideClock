@@ -42,17 +42,18 @@ class Stepper:
         # if self.position.is_integer():
         #     print("Stepping... Current position: %.2f" % self.position)
     
-    def zero(self):
+    def zero(self, reset=False):
         if not self.zeroed:
             print("Zeroing stepper...")
             start = None
             stop = None
             # Make sure sensor isn't already triggered
-            while self.sensor.is_pressed:
-                self.step()
-            # Rotate till sensor triggered
-            while not self.sensor.is_pressed:
-                self.step()
+            if not reset:
+                while self.sensor.is_pressed :
+                    self.step()
+                # Rotate till sensor triggered
+                while not self.sensor.is_pressed:
+                    self.step()
             start = self.position
             print(f"Sensor triggered at position {start}")
             # If range of sensor is unknown, continue to find it
@@ -103,7 +104,7 @@ class Stepper:
             else:
                 print("Warning: not zero target but sensor is active! Position: %.4f start: %.4f stop: %.4f" % (self.position, self.triggered_start, self.triggered_stop))
                 self.zeroed = False
-                self.zero()
+                self.zero(reset=True)
     
     def lateZeroCheck(self):
         if not self.sensor.is_pressed:
