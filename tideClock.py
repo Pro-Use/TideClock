@@ -8,7 +8,7 @@ STEPS = 199
 HIGH = STEPS * 0.25
 LOW = STEPS * 0.75
 TABLE = 'Barnstable_2025_2075'
-TOLERANCE = 2
+TOLERANCE = 4
 
 data_range = False
 data_month_range = False
@@ -102,7 +102,7 @@ class Stepper:
             if (0 <= self.position <= self.triggered_stop):
                 return
             else:
-                print("Warning: not zero target but sensor is active! Position: %.4f start: %.4f stop: %.4f" % (self.position, self.triggered_start, self.triggered_stop))
+                print("Warning: not zero target but sensor is active! Position: %.3f start: %.3f stop: %.3f" % (self.position, self.triggered_start, self.triggered_stop))
                 self.zeroed = False
                 if self.position > 0:
                     self.zero()
