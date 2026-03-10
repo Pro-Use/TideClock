@@ -222,6 +222,7 @@ if __name__ == "__main__":
         neapSpring.moveTo(neapSpringStep)
         # TODO ebb 
         ebbFlowVal = (tideStep - 50) % STEPS
+        print("Ebb flow step: %d" % ebbFlowVal)
         ebbFlow.moveTo(ebbFlowVal)
         
         # sleep
