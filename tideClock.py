@@ -192,8 +192,8 @@ def tideStepperPos(prev, next):
 
 if __name__ == "__main__":
     tideHeight = Stepper(motor_pin=26, sensor_pin=19)
-    # neapSpring = Stepper(motor_pin=13, sensor_pin=6)
-    # ebbFlow = Stepper(motor_pin=5, sensor_pin=11)
+    neapSpring = Stepper(motor_pin=13, sensor_pin=6)
+    ebbFlow = Stepper(motor_pin=5, sensor_pin=11)
     CONN = sqlite3.connect(DBPATH)
     CURSOR = CONN.cursor()
 
@@ -219,8 +219,10 @@ if __name__ == "__main__":
         
         # Move steppers
         tideHeight.moveTo(tideStep)
-        # neapSpring.moveTo(neapSpringStep)
-        # TODO ebb flow
+        neapSpring.moveTo(neapSpringStep)
+        # TODO ebb 
+        ebbFlowVal = (tideStep - 50) % STEPS
+        ebbFlow.moveTo(ebbFlowVal)
         
         # sleep
         delay = future - time()
