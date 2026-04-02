@@ -188,7 +188,7 @@ def tideStepperPos(prev, next):
     dir_mod = 0
     if next[3] > prev[3]:
         dir_mod = 100 # flooding
-    return int((STEPS / 2) * proportion) + dir_mod
+    return (int((STEPS / 2) * proportion) + dir_mod) % STEPS
 
 if __name__ == "__main__":
     tideHeight = Stepper(motor_pin=26, sensor_pin=19)
