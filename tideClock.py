@@ -167,12 +167,12 @@ def findNeapSpring(data, currentIndex, now):
     max_index_before, max_row_before = max(enumerate(before), key=lambda x: x[1][3])
     max_index_after, max_row_after = max(enumerate(after), key=lambda x: x[1][3])
     max_index_after += len(before)
-    print(f"Max height_diff before at index {max_index_before}, {data[max_index_before]}")
-    print(f"Max height_diff after at index {max_index_after}, {data[max_index_after]}")
+    # print(f"Max height_diff before at index {max_index_before}, {data[max_index_before]}")
+    # print(f"Max height_diff after at index {max_index_after}, {data[max_index_after]}")
     # Is nearest spring before or after?
     time_before = abs(now - max_row_before[0])
     time_after = abs(now - max_row_after[0])
-    print(f"Time before: {time_before}, Time after: {time_after}")
+    # print(f"Time before: {time_before}, Time after: {time_after}")
     if time_before < time_after:
         print("Nearest spring is before")
         max_index = max_index_before
