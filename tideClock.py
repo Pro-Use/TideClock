@@ -183,12 +183,14 @@ def findNeapSpring(now):
         window_behind = getPrevWindow(now, now - window_behind_time)
         min_index, min_row = min(enumerate(window_behind), key=lambda x: x[1][3])
         print(f"Time of neap: {min_row[1]} {min_row[2]}, Time of spring: {max_row[1]} {max_row[2]}")
+        return min_row, max_row   
     else:
         print("Approaching neap")
         window_behind_time = (WINDOW_DAYS * SECONDS_IN_DAY) - time_to_neap
         window_behind = getPrevWindow(now, now - window_behind_time)
         max_index, max_row = max(enumerate(window_behind), key=lambda x: x[1][3])
         print(f"Time of spring: {max_row[1]} {max_row[2]}, Time of neap: {min_row[1]} {min_row[2]}")
+        return max_row, min_row
         
     return min_row, max_row              
 
