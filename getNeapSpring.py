@@ -24,9 +24,9 @@ def getRange(diff=0):
 
 def getMonthRange(now):
     # now = datetime.datetime.now().timestamp()
-    fourteen_days_ago = now - (1555200/2)
-    fourteen_days_ahead = now + (1555200/2)
-    query = f"SELECT timestamp,date,time,height_diff FROM {TABLE} WHERE timestamp BETWEEN {fourteen_days_ago} AND {fourteen_days_ahead} ORDER BY timestamp ASC"
+    five_days_ago = now - (864000/2)
+    five_days_ahead = now + (864000/2)
+    query = f"SELECT timestamp,date,time,height_diff FROM {TABLE} WHERE timestamp BETWEEN {five_days_ago} AND {five_days_ahead} ORDER BY timestamp ASC"
     CURSOR.execute(query)
     rows = CURSOR.fetchall()
     return rows
@@ -43,51 +43,23 @@ def findPosIndex(data, currentTime):
 def findNeapSpring(data, currentIndex, now):
     if now > data[currentIndex][0]:
         currentIndex += 1 # adjust for same day/time
-    before = data[0:currentIndex]
-    after = data[currentIndex:]
-    for i, row in enumerate(reversed(before)):
-        next = i + 1
-        if next == len(before):
-            max_index_before, max_row_before = len(before) - 1 - i, row # reverse index to get original position
-            break
-        if row[3] > before[next][3]:
-            max_index_before, max_row_before = len(before) - 1 - i, row 
-            break
-    for i, row in enumerate(after):
-        next = i + 1
-        if next == len(after):
-            max_index_after, max_row_after = i, row
-            break
-        if row[3] > after[next][3]:
-            max_index_after, max_row_after = i, row
-            break
-    # max_index_before, max_row_before = max(enumerate(before), key=lambda x: x[1][3])
-    # max_index_after, max_row_after = max(enumerate(after), key=lambda x: x[1][3])
-    max_index_after += len(before)
-    # print(f"Max height_diff before at index {max_index_before}, {data[max_index_before]}")
-    # print(f"Max height_diff after at index {max_index_after}, {data[max_index_after]}")
-    # Is nearest spring before or after?
-    time_before = abs(now - max_row_before[0])
-    time_after = abs(now - max_row_after[0])
-    print(f"Time before: {time_before}, Time after: {time_after}")
-    if time_before < time_after:
-        print("Nearest spring is before")
-        max_index = max_index_before
-        max_row = max_row_before
-        min_index, min_row = min(enumerate(after), key=lambda x: x[1][3])
-        min_index += len(before)
-        print(f"Max height_diff: { max_row} at index {max_index}, {data[max_index]}")
-        print(f"Min height_diff: { min_row} at index {min_index}, {data[min_index]}")
-        return max_row, min_row   
-        
+    
+    max_index, max_row = max(enumerate(data), key=lambda x: x[1][3])
+    min_index, min_row = min(enumerate(data), key=lambda x: x[1][3])
+    print(f"Max height_diff overall at index {max_index}, {data[max_index]}")
+    print(f"Min height_diff overall at index {min_index}, {data[min_index]}")
+    time_to_spring = now - max_row[0]
+    time_to_neap = now - min_row[0]
+    # print(f"Time to Spring: {time_to_spring},Time to Neap: {time_to_neap}")
+    # Are we nearer to the spring or neap?
+    if time_to_spring < time_to_neap:
+        print("Approaching spring")
+        print(f"Time of neap: {min_row[1]} {min_row[2]}, Time of spring: {max_row[1]} {max_row[2]}")
     else:
-        print("Nearest spring is after")
-        max_index = max_index_after
-        max_row = max_row_after
-        min_index, min_row = min(enumerate(before), key=lambda x: x[1][3])
-        print(f"Max height_diff: { max_row} at index {max_index}, {data[max_index]}")
-        print(f"Min height_diff: { min_row} at index {min_index}, {data[min_index]}")
-        return min_row, max_row   
+        print("Approaching neap")
+        print(f"Time of spring: {max_row[1]} {max_row[2]}, Time of neap: {min_row[1]} {min_row[2]}")
+        
+    return min_row, max_row   
     
             
 
@@ -105,19 +77,20 @@ if __name__ == "__main__":
     CONN = sqlite3.connect(DBPATH)
     CURSOR = CONN.cursor()
 
-    #Tide Height
-    data_range = getRange()
-    now = datetime.datetime.now().timestamp()
-    cur_index = findPosIndex(data_range, now)
-    print(f"Current time: {datetime.datetime.now()}, Previous: {cur_index[0][1]} {cur_index[0][2]} height: {cur_index[0][3]}, Next: {cur_index[1][1]} {cur_index[1][2]} height: {cur_index[1][3]}")
-    tideStep = tideStepperPos(cur_index[0], cur_index[1], now)
-    print("Tide Step: %d" % tideStep)
+    # #Tide Height
+    # data_range = getRange()
+    # now = datetime.datetime.now().timestamp()
+    # cur_index = findPosIndex(data_range, now)
+    # print(f"Current time: {datetime.datetime.now()}, Previous: {cur_index[0][1]} {cur_index[0][2]} height: {cur_index[0][3]}, Next: {cur_index[1][1]} {cur_index[1][2]} height: {cur_index[1][3]}")
+    # tideStep = tideStepperPos(cur_index[0], cur_index[1], now)
+    # print("Tide Step: %d" % tideStep)
 
-    #TODO Ebb Flow - phase shift...
+    # #TODO Ebb Flow - phase shift...
     
     #lunar
     now = datetime.datetime.now().timestamp()
-    now = datetime.datetime.strptime("2026-04-21 20:59:02.571717", "%Y-%m-%d %H:%M:%S.%f").timestamp()
+    now = datetime.datetime.strptime("2026-04-21 20:49:02.571717", "%Y-%m-%d %H:%M:%S.%f").timestamp()
+    print(f"Now: {datetime.datetime.fromtimestamp(now)}")
     data_month_range = getMonthRange(now)
     month_index = findPosIndex(data_month_range, now)
     before, after = findNeapSpring(data_month_range, month_index[2], now)

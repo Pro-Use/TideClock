@@ -163,51 +163,23 @@ def findPosIndex(data, currentTime):
 def findNeapSpring(data, currentIndex, now):
     if now > data[currentIndex][0]:
         currentIndex += 1 # adjust for same day/time
-    before = data[0:currentIndex]
-    after = data[currentIndex:]
-    for i, row in enumerate(reversed(before)):
-        next = i + 1
-        if next == len(before):
-            max_index_before, max_row_before = len(before) - 1 - i, row # reverse index to get original position
-            break
-        if row[3] > before[next][3]:
-            max_index_before, max_row_before = len(before) - 1 - i, row 
-            break
-    for i, row in enumerate(after):
-        next = i + 1
-        if next == len(after):
-            max_index_after, max_row_after = i, row
-            break
-        if row[3] > after[next][3]:
-            max_index_after, max_row_after = i, row
-            break
-    # max_index_before, max_row_before = max(enumerate(before), key=lambda x: x[1][3])
-    # max_index_after, max_row_after = max(enumerate(after), key=lambda x: x[1][3])
-    max_index_after += len(before)
-    # print(f"Max height_diff before at index {max_index_before}, {data[max_index_before]}")
-    # print(f"Max height_diff after at index {max_index_after}, {data[max_index_after]}")
-    # Is nearest spring before or after?
-    time_before = abs(now - max_row_before[0])
-    time_after = abs(now - max_row_after[0])
-    # print(f"Time before: {time_before}, Time after: {time_after}")
-    if time_before < time_after:
-        print("Nearest spring is before")
-        max_index = max_index_before
-        max_row = max_row_before
-        min_index, min_row = min(enumerate(after), key=lambda x: x[1][3])
-        min_index += len(before)
-        print(f"Max height_diff: { max_row} at index {max_index}, {data[max_index]}")
-        print(f"Min height_diff: { min_row} at index {min_index}, {data[min_index]}")
-        return max_row, min_row   
-        
+    
+    max_index, max_row = max(enumerate(data), key=lambda x: x[1][3])
+    min_index, min_row = min(enumerate(data), key=lambda x: x[1][3])
+    print(f"Max height_diff overall at index {max_index}, {data[max_index]}")
+    print(f"Min height_diff overall at index {min_index}, {data[min_index]}")
+    time_to_spring = now - max_row[0]
+    time_to_neap = now - min_row[0]
+    # print(f"Time to Spring: {time_to_spring},Time to Neap: {time_to_neap}")
+    # Are we nearer to the spring or neap?
+    if time_to_spring < time_to_neap:
+        print("Approaching spring")
+        print(f"Time of neap: {min_row[1]} {min_row[2]}, Time of spring: {max_row[1]} {max_row[2]}")
     else:
-        print("Nearest spring is after")
-        max_index = max_index_after
-        max_row = max_row_after
-        min_index, min_row = min(enumerate(before), key=lambda x: x[1][3])
-        print(f"Max height_diff: { max_row} at index {max_index}, {data[max_index]}")
-        print(f"Min height_diff: { min_row} at index {min_index}, {data[min_index]}")
-        return min_row, max_row              
+        print("Approaching neap")
+        print(f"Time of spring: {max_row[1]} {max_row[2]}, Time of neap: {min_row[1]} {min_row[2]}")
+        
+    return min_row, max_row               
 
 def tideStepperPos(prev, next, now):
     ebb_flow_time = next[0] - prev[0]
