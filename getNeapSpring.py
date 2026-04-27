@@ -24,8 +24,8 @@ def getRange(diff=0):
 
 def getMonthRange(now):
     # now = datetime.datetime.now().timestamp()
-    fourteen_days_ago = now - (2592000/2)
-    fourteen_days_ahead = now + (2592000/2)
+    fourteen_days_ago = now - (1555200/2)
+    fourteen_days_ahead = now + (1555200/2)
     query = f"SELECT timestamp,date,time,height_diff FROM {TABLE} WHERE timestamp BETWEEN {fourteen_days_ago} AND {fourteen_days_ahead} ORDER BY timestamp ASC"
     CURSOR.execute(query)
     rows = CURSOR.fetchall()
@@ -45,15 +45,31 @@ def findNeapSpring(data, currentIndex, now):
         currentIndex += 1 # adjust for same day/time
     before = data[0:currentIndex]
     after = data[currentIndex:]
-    max_index_before, max_row_before = max(enumerate(before), key=lambda x: x[1][3])
-    max_index_after, max_row_after = max(enumerate(after), key=lambda x: x[1][3])
+    for i, row in enumerate(reversed(before)):
+        next = i + 1
+        if next == len(before):
+            max_index_before, max_row_before = len(before) - 1 - i, row # reverse index to get original position
+            break
+        if row[3] > before[next][3]:
+            max_index_before, max_row_before = len(before) - 1 - i, row 
+            break
+    for i, row in enumerate(after):
+        next = i + 1
+        if next == len(after):
+            max_index_after, max_row_after = i, row
+            break
+        if row[3] > after[next][3]:
+            max_index_after, max_row_after = i, row
+            break
+    # max_index_before, max_row_before = max(enumerate(before), key=lambda x: x[1][3])
+    # max_index_after, max_row_after = max(enumerate(after), key=lambda x: x[1][3])
     max_index_after += len(before)
     # print(f"Max height_diff before at index {max_index_before}, {data[max_index_before]}")
     # print(f"Max height_diff after at index {max_index_after}, {data[max_index_after]}")
     # Is nearest spring before or after?
     time_before = abs(now - max_row_before[0])
     time_after = abs(now - max_row_after[0])
-    # print(f"Time before: {time_before}, Time after: {time_after}")
+    print(f"Time before: {time_before}, Time after: {time_after}")
     if time_before < time_after:
         print("Nearest spring is before")
         max_index = max_index_before
@@ -100,8 +116,8 @@ if __name__ == "__main__":
     #TODO Ebb Flow - phase shift...
     
     #lunar
-    # now = datetime.datetime.now().timestamp()
-    now = datetime.datetime.strptime("2026-04-21 20:47:02.571717", "%Y-%m-%d %H:%M:%S.%f").timestamp()
+    now = datetime.datetime.now().timestamp()
+    now = datetime.datetime.strptime("2026-04-21 20:59:02.571717", "%Y-%m-%d %H:%M:%S.%f").timestamp()
     data_month_range = getMonthRange(now)
     month_index = findPosIndex(data_month_range, now)
     before, after = findNeapSpring(data_month_range, month_index[2], now)

@@ -12,6 +12,7 @@ TOLERANCE = 4
 
 data_range = False
 data_month_range = False
+old_neap_spring = None
 
 
 class Stepper:
@@ -164,8 +165,24 @@ def findNeapSpring(data, currentIndex, now):
         currentIndex += 1 # adjust for same day/time
     before = data[0:currentIndex]
     after = data[currentIndex:]
-    max_index_before, max_row_before = max(enumerate(before), key=lambda x: x[1][3])
-    max_index_after, max_row_after = max(enumerate(after), key=lambda x: x[1][3])
+    for i, row in enumerate(reversed(before)):
+        next = i + 1
+        if next == len(before):
+            max_index_before, max_row_before = len(before) - 1 - i, row # reverse index to get original position
+            break
+        if row[3] > before[next][3]:
+            max_index_before, max_row_before = len(before) - 1 - i, row 
+            break
+    for i, row in enumerate(after):
+        next = i + 1
+        if next == len(after):
+            max_index_after, max_row_after = i, row
+            break
+        if row[3] > after[next][3]:
+            max_index_after, max_row_after = i, row
+            break
+    # max_index_before, max_row_before = max(enumerate(before), key=lambda x: x[1][3])
+    # max_index_after, max_row_after = max(enumerate(after), key=lambda x: x[1][3])
     max_index_after += len(before)
     # print(f"Max height_diff before at index {max_index_before}, {data[max_index_before]}")
     # print(f"Max height_diff after at index {max_index_after}, {data[max_index_after]}")
@@ -229,7 +246,13 @@ if __name__ == "__main__":
         before, after = findNeapSpring(data_month_range, month_index[2], now)
         neapSpringStep = tideStepperPos(before, after, now)
         print("Neap Spring Step: %d" % neapSpringStep)
-        
+        if old_neap_spring != None:
+            if neapSpringStep < old_neap_spring and neapSpringStep > 2:
+                print("NEAP SPRING ERROR: Neap spring step decreased")
+            elif abs(neapSpringStep - old_neap_spring) > 3:
+                print("NEAP SPRING ERROR: Neap spring step changed by more than 3 steps")  
+        old_neap_spring = neapSpringStep
+            
         # Move steppers
         tideHeight.moveTo(tideStep)
         neapSpring.moveTo(neapSpringStep)
