@@ -144,9 +144,9 @@ def getRange(now):
 
 def getMonthRange(now):
     # now = datetime.datetime.now().timestamp()
-    nine_days_ago = now - (1209600/2)
-    nine_days_ahead = now + (1209600/2)
-    query = f"SELECT timestamp,date,time,height_diff FROM {TABLE} WHERE timestamp BETWEEN {nine_days_ago} AND {nine_days_ahead} ORDER BY timestamp ASC"
+    fourteen_days_ago = now - (2592000/2)
+    fourteen_days_ahead = now + (2592000/2)
+    query = f"SELECT timestamp,date,time,height_diff FROM {TABLE} WHERE timestamp BETWEEN {fourteen_days_ago} AND {fourteen_days_ahead} ORDER BY timestamp ASC"
     CURSOR.execute(query)
     rows = CURSOR.fetchall()
     return rows
