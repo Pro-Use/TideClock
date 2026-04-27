@@ -8,6 +8,8 @@ HIGH = STEPS * 0.25
 LOW = STEPS * 0.75
 TABLE = 'Barnstable_2025_2075'
 TOLERANCE = 4
+SECONDS_IN_DAY = 86400
+WINDOW_DAYS = 7.5
 
 data_range = False
 data_month_range = False
@@ -24,9 +26,23 @@ def getRange(diff=0):
 
 def getMonthRange(now):
     # now = datetime.datetime.now().timestamp()
-    five_days_ago = now - (864000/2)
-    five_days_ahead = now + (864000/2)
-    query = f"SELECT timestamp,date,time,height_diff FROM {TABLE} WHERE timestamp BETWEEN {five_days_ago} AND {five_days_ahead} ORDER BY timestamp ASC"
+    four_days_ago = now - (691200/2)
+    four_days_ahead = now + (691200/2)
+    query = f"SELECT timestamp,date,time,height_diff FROM {TABLE} WHERE timestamp BETWEEN {four_days_ago} AND {four_days_ahead} ORDER BY timestamp ASC"
+    CURSOR.execute(query)
+    rows = CURSOR.fetchall()
+    return rows
+
+def getNextWindow(now):
+    windowAhead = now + (WINDOW_DAYS * SECONDS_IN_DAY)
+    bufferBehind = now - SECONDS_IN_DAY
+    query = f"SELECT timestamp,date,time,height_diff FROM {TABLE} WHERE timestamp BETWEEN {bufferBehind} AND {windowAhead} ORDER BY timestamp ASC"
+    CURSOR.execute(query)
+    rows = CURSOR.fetchall()
+    return rows
+
+def getPrevWindow(now, tsBehind):
+    query = f"SELECT timestamp,date,time,height_diff FROM {TABLE} WHERE timestamp BETWEEN {tsBehind} AND {now} ORDER BY timestamp ASC"
     CURSOR.execute(query)
     rows = CURSOR.fetchall()
     return rows
@@ -40,23 +56,27 @@ def findPosIndex(data, currentTime):
             return data[i], data[i+1], i
     return None
 
-def findNeapSpring(data, currentIndex, now):
-    if now > data[currentIndex][0]:
-        currentIndex += 1 # adjust for same day/time
-    
-    max_index, max_row = max(enumerate(data), key=lambda x: x[1][3])
-    min_index, min_row = min(enumerate(data), key=lambda x: x[1][3])
-    print(f"Max height_diff overall at index {max_index}, {data[max_index]}")
-    print(f"Min height_diff overall at index {min_index}, {data[min_index]}")
-    time_to_spring = now - max_row[0]
-    time_to_neap = now - min_row[0]
-    # print(f"Time to Spring: {time_to_spring},Time to Neap: {time_to_neap}")
+def findNeapSpring(now):
+    window_Ahead = getNextWindow(now)
+    max_index, max_row = max(enumerate(window_Ahead), key=lambda x: x[1][3])
+    min_index, min_row = min(enumerate(window_Ahead), key=lambda x: x[1][3])
+    print(f"Max height_diff overall at index {max_index}, {window_Ahead[max_index]}")
+    print(f"Min height_diff overall at index {min_index}, {window_Ahead[min_index]}")
+    time_to_spring = max_row[0] - now
+    time_to_neap = min_row[0] - now
+    print(f"Time to Spring: {time_to_spring},Time to Neap: {time_to_neap}")
     # Are we nearer to the spring or neap?
-    if time_to_spring < time_to_neap:
+    if time_to_neap < 0 or time_to_spring < time_to_neap and time_to_spring > 0:
         print("Approaching spring")
+        window_behind_time = (WINDOW_DAYS * SECONDS_IN_DAY) - time_to_spring
+        window_behind = getPrevWindow(now, now - window_behind_time)
+        min_index, min_row = min(enumerate(window_behind), key=lambda x: x[1][3])
         print(f"Time of neap: {min_row[1]} {min_row[2]}, Time of spring: {max_row[1]} {max_row[2]}")
     else:
         print("Approaching neap")
+        window_behind_time = (WINDOW_DAYS * SECONDS_IN_DAY) - time_to_neap
+        window_behind = getPrevWindow(now, now - window_behind_time)
+        max_index, max_row = max(enumerate(window_behind), key=lambda x: x[1][3])
         print(f"Time of spring: {max_row[1]} {max_row[2]}, Time of neap: {min_row[1]} {min_row[2]}")
         
     return min_row, max_row   
@@ -89,11 +109,9 @@ if __name__ == "__main__":
     
     #lunar
     now = datetime.datetime.now().timestamp()
-    now = datetime.datetime.strptime("2026-04-21 20:49:02.571717", "%Y-%m-%d %H:%M:%S.%f").timestamp()
+    now = datetime.datetime.strptime("2026-04-19 06:59:02.571717", "%Y-%m-%d %H:%M:%S.%f").timestamp()
     print(f"Now: {datetime.datetime.fromtimestamp(now)}")
-    data_month_range = getMonthRange(now)
-    month_index = findPosIndex(data_month_range, now)
-    before, after = findNeapSpring(data_month_range, month_index[2], now)
+    before, after = findNeapSpring(now)
     neapSpringStep = tideStepperPos(before, after, now)
     print("Neap Spring Step: %d" % neapSpringStep)
         
