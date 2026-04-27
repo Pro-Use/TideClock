@@ -133,8 +133,8 @@ class Stepper:
             self.earlyZeroCheck()
             
 
-def getRange():
-    now = datetime.datetime.now().timestamp()
+def getRange(now):
+    # now = datetime.datetime.now().timestamp()
     yesterday = now - 86400
     tomorrow = now + 86400
     query = f"SELECT timestamp,date,time,height FROM {TABLE} WHERE timestamp BETWEEN {yesterday} AND {tomorrow} ORDER BY timestamp ASC"
@@ -142,11 +142,11 @@ def getRange():
     rows = CURSOR.fetchall()
     return rows
 
-def getMonthRange():
-    now = datetime.datetime.now().timestamp()
-    month_ago = now - (2592000/2)
-    month_ahead = now + (2592000/2)
-    query = f"SELECT timestamp,date,time,height_diff FROM {TABLE} WHERE timestamp BETWEEN {month_ago} AND {month_ahead} ORDER BY timestamp ASC"
+def getMonthRange(now):
+    # now = datetime.datetime.now().timestamp()
+    nine_days_ago = now - (1209600/2)
+    nine_days_ahead = now + (1209600/2)
+    query = f"SELECT timestamp,date,time,height_diff FROM {TABLE} WHERE timestamp BETWEEN {nine_days_ago} AND {nine_days_ahead} ORDER BY timestamp ASC"
     CURSOR.execute(query)
     rows = CURSOR.fetchall()
     return rows
@@ -159,30 +159,42 @@ def findPosIndex(data, currentTime):
             return data[i], data[i+1], i
     return None
 
-def findNeapSpring(data, currentIndex):
+def findNeapSpring(data, currentIndex, now):
+    if now > data[currentIndex][0]:
+        currentIndex += 1 # adjust for same day/time
     before = data[0:currentIndex]
     after = data[currentIndex:]
     max_index_before, max_row_before = max(enumerate(before), key=lambda x: x[1][3])
     max_index_after, max_row_after = max(enumerate(after), key=lambda x: x[1][3])
+    max_index_after += len(before)
+    print(f"Max height_diff before at index {max_index_before}, {data[max_index_before]}")
+    print(f"Max height_diff after at index {max_index_after}, {data[max_index_after]}")
     # Is nearest spring before or after?
-    if abs(data[currentIndex][0] - max_row_before[0]) < abs(data[currentIndex][0] - max_row_after[0]):
+    time_before = abs(now - max_row_before[0])
+    time_after = abs(now - max_row_after[0])
+    print(f"Time before: {time_before}, Time after: {time_after}")
+    if time_before < time_after:
+        print("Nearest spring is before")
         max_index = max_index_before
         max_row = max_row_before
         min_index, min_row = min(enumerate(after), key=lambda x: x[1][3])
         min_index += len(before)
+        print(f"Max height_diff: { max_row} at index {max_index}, {data[max_index]}")
+        print(f"Min height_diff: { min_row} at index {min_index}, {data[min_index]}")
+        return max_row, min_row   
         
     else:
-        max_index = max_index_after + len(before)
+        print("Nearest spring is after")
+        max_index = max_index_after
         max_row = max_row_after
         min_index, min_row = min(enumerate(before), key=lambda x: x[1][3])
-    
-    print(f"Max height_diff: { max_row} at index {max_index}, {data[max_index]}")
-    print(f"Min height_diff: { min_row} at index {min_index}, {data[min_index]}")
-    return min_row, max_row           
+        print(f"Max height_diff: { max_row} at index {max_index}, {data[max_index]}")
+        print(f"Min height_diff: { min_row} at index {min_index}, {data[min_index]}")
+        return min_row, max_row              
 
-def tideStepperPos(prev, next):
+def tideStepperPos(prev, next, now):
     ebb_flow_time = next[0] - prev[0]
-    time_since_prev = datetime.datetime.now().timestamp() - prev[0]
+    time_since_prev =now - prev[0]
     proportion = time_since_prev / ebb_flow_time
     # direction!
     dir_mod = 0
@@ -200,21 +212,22 @@ if __name__ == "__main__":
     while True:
         future = time() + 60
         #Tide Height
-        data_range = getRange()
         now = datetime.datetime.now().timestamp()
+        data_range = getRange(now)
         cur_index = findPosIndex(data_range, now)
-        print(f"Current time: {datetime.datetime.now()}, Previous: {cur_index[0][1]} {cur_index[0][2]} height: {cur_index[0][3]}, Next: {cur_index[1][1]} {cur_index[1][2]} height: {cur_index[1][3]}")
-        tideStep = tideStepperPos(cur_index[0], cur_index[1])
+        print(f"Current time: {now}, Previous: {cur_index[0][1]} {cur_index[0][2]} height: {cur_index[0][3]}, Next: {cur_index[1][1]} {cur_index[1][2]} height: {cur_index[1][3]}")
+        tideStep = tideStepperPos(cur_index[0], cur_index[1], now)
         print("Tide Step: %d" % tideStep)
 
         #TODO Ebb Flow - phase shift...
         
         #lunar
-        data_month_range = getMonthRange()
+        
         now = datetime.datetime.now().timestamp()
+        data_month_range = getMonthRange(now)
         month_index = findPosIndex(data_month_range, now)
-        before, after = findNeapSpring(data_month_range, month_index[2])
-        neapSpringStep = tideStepperPos(before, after)
+        before, after = findNeapSpring(data_month_range, month_index[2], now)
+        neapSpringStep = tideStepperPos(before, after, now)
         print("Neap Spring Step: %d" % neapSpringStep)
         
         # Move steppers
