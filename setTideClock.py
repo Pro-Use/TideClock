@@ -134,7 +134,7 @@ class Stepper:
             
 
 def getRange():
-    now = datetime.datetime.now().timestamp()
+    now = datetime.datetime.now(datetime.timezone.utc).timestamp()
     yesterday = now - 86400
     tomorrow = now + 86400
     query = f"SELECT timestamp,date,time,height FROM {TABLE} WHERE timestamp BETWEEN {yesterday} AND {tomorrow} ORDER BY timestamp ASC"
@@ -143,7 +143,7 @@ def getRange():
     return rows
 
 def getMonthRange():
-    now = datetime.datetime.now().timestamp()
+    now = datetime.datetime.now(datetime.timezone.utc).timestamp()
     month_ago = now - (2592000/2)
     month_ahead = now + (2592000/2)
     query = f"SELECT timestamp,date,time,height_diff FROM {TABLE} WHERE timestamp BETWEEN {month_ago} AND {month_ahead} ORDER BY timestamp ASC"
@@ -182,7 +182,7 @@ def findNeapSpring(data, currentIndex):
 
 def tideStepperPos(prev, next):
     ebb_flow_time = next[0] - prev[0]
-    time_since_prev = datetime.datetime.now().timestamp() - prev[0]
+    time_since_prev = datetime.datetime.now(datetime.timezone.utc).timestamp() - prev[0]
     proportion = time_since_prev / ebb_flow_time
     # direction!
     dir_mod = 0

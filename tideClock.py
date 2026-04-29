@@ -137,7 +137,7 @@ class Stepper:
             
 
 def getRange(now):
-    # now = datetime.datetime.now().timestamp()
+    # now = datetime.datetime.now(datetime.timezone.utc).timestamp()
     yesterday = now - 86400
     tomorrow = now + 86400
     query = f"SELECT timestamp,date,time,height FROM {TABLE} WHERE timestamp BETWEEN {yesterday} AND {tomorrow} ORDER BY timestamp ASC"
@@ -214,7 +214,7 @@ if __name__ == "__main__":
     while True:
         future = time() + 60
         #Tide Height
-        now = datetime.datetime.now().timestamp()
+        now = datetime.datetime.now(datetime.timezone.utc).timestamp()
         data_range = getRange(now)
         cur_index = findPosIndex(data_range, now)
         print(f"Current time: {now}, Previous: {cur_index[0][1]} {cur_index[0][2]} height: {cur_index[0][3]}, Next: {cur_index[1][1]} {cur_index[1][2]} height: {cur_index[1][3]}")
@@ -225,7 +225,7 @@ if __name__ == "__main__":
         
         #lunar
         
-        now = datetime.datetime.now().timestamp()
+        now = datetime.datetime.now(datetime.timezone.utc).timestamp()
         before, after = findNeapSpring(now)
         neapSpringStep = tideStepperPos(before, after, now)
         print("Neap Spring Step: %d" % neapSpringStep)
