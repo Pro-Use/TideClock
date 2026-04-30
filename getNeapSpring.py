@@ -16,7 +16,7 @@ data_month_range = False
 
 
 def getRange(diff=0):
-    now = datetime.datetime.now(datetime.timezone.utc).timestamp() - diff
+    now = datetime.datetime.utcnow().timestamp() - diff
     yesterday = now - 86400
     tomorrow = now + 86400
     query = f"SELECT timestamp,date,time,height FROM {TABLE} WHERE timestamp BETWEEN {yesterday} AND {tomorrow} ORDER BY timestamp ASC"
@@ -25,7 +25,7 @@ def getRange(diff=0):
     return rows
 
 def getMonthRange(now):
-    # now = datetime.datetime.now(datetime.timezone.utc).timestamp()
+    # now = datetime.datetime.utcnow().timestamp()
     four_days_ago = now - (691200/2)
     four_days_ahead = now + (691200/2)
     query = f"SELECT timestamp,date,time,height_diff FROM {TABLE} WHERE timestamp BETWEEN {four_days_ago} AND {four_days_ahead} ORDER BY timestamp ASC"
@@ -99,19 +99,21 @@ if __name__ == "__main__":
     CONN = sqlite3.connect(DBPATH)
     CURSOR = CONN.cursor()
 
-    # #Tide Height
-    # data_range = getRange()
-    # now = datetime.datetime.now(datetime.timezone.utc).timestamp()
-    # cur_index = findPosIndex(data_range, now)
-    # print(f"Current time: {datetime.datetime.now(datetime.timezone.utc)}, Previous: {cur_index[0][1]} {cur_index[0][2]} height: {cur_index[0][3]}, Next: {cur_index[1][1]} {cur_index[1][2]} height: {cur_index[1][3]}")
-    # tideStep = tideStepperPos(cur_index[0], cur_index[1], now)
-    # print("Tide Step: %d" % tideStep)
+    #Tide Height
+    data_range = getRange()
+    # now = datetime.datetime.utcnow().timestamp()
+    now_time = "2026-04-30 11:32:02.571717"
+    now = datetime.datetime.strptime(now_time, "%Y-%m-%d %H:%M:%S.%f").timestamp()
+
+    cur_index = findPosIndex(data_range, now)
+    print(f"Current time: {datetime.datetime.strptime(now_time, "%Y-%m-%d %H:%M:%S.%f")}, Previous: {cur_index[0][1]} {cur_index[0][2]} height: {cur_index[0][3]}, Next: {cur_index[1][1]} {cur_index[1][2]} height: {cur_index[1][3]}")
+    tideStep = tideStepperPos(cur_index[0], cur_index[1], now)
+    print("Tide Step: %d" % tideStep)
 
     # #TODO Ebb Flow - phase shift...
     
     #lunar
-    now = datetime.datetime.now(datetime.timezone.utc).timestamp()
-    # now = datetime.datetime.strptime("2026-04-19 10:59:02.571717", "%Y-%m-%d %H:%M:%S.%f").timestamp()
+    # now = datetime.datetime.utcnow().timestamp()
     print(f"Now: {datetime.datetime.fromtimestamp(now)}")
     before, after = findNeapSpring(now)
     neapSpringStep = tideStepperPos(before, after, now)

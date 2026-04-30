@@ -214,10 +214,10 @@ if __name__ == "__main__":
     while True:
         future = time() + 60
         #Tide Height
-        now = datetime.datetime.now(datetime.timezone.utc).timestamp()
+        now = datetime.datetime.utcnow().timestamp()
         data_range = getRange(now)
         cur_index = findPosIndex(data_range, now)
-        print(f"Current time: {now}, Previous: {cur_index[0][1]} {cur_index[0][2]} height: {cur_index[0][3]}, Next: {cur_index[1][1]} {cur_index[1][2]} height: {cur_index[1][3]}")
+        print(f"Current time: {datetime.datetime.fromtimestamp(now)}, Previous: {cur_index[0][1]} {cur_index[0][2]} height: {cur_index[0][3]}, Next: {cur_index[1][1]} {cur_index[1][2]} height: {cur_index[1][3]}")
         tideStep = tideStepperPos(cur_index[0], cur_index[1], now)
         print("Tide Step: %d" % tideStep)
 
@@ -225,7 +225,7 @@ if __name__ == "__main__":
         
         #lunar
         
-        now = datetime.datetime.now(datetime.timezone.utc).timestamp()
+        now = datetime.datetime.utcnow().timestamp()
         before, after = findNeapSpring(now)
         neapSpringStep = tideStepperPos(before, after, now)
         print("Neap Spring Step: %d" % neapSpringStep)
