@@ -2,6 +2,7 @@ import datetime
 import sqlite3
 from gpiozero import OutputDevice, Button
 from time import sleep, time
+from threading import Thread
 
 DBPATH = '/home/pi/barnstaple_tide_heights'
 STEPS = 200
@@ -11,11 +12,11 @@ TABLE = 'Barnstable_2025_2075'
 TOLERANCE = 4
 SECONDS_IN_DAY = 86400
 WINDOW_DAYS = 7.5
+STATUS_LED = OutputDevice(18)
 
 data_range = False
 data_month_range = False
 old_neap_spring = None
-
 
 class Stepper:
     def __init__(self, motor_pin, sensor_pin):
@@ -204,7 +205,19 @@ def tideStepperPos(prev, next, now):
         dir_mod = 100 # flooding
     return (int((STEPS / 2) * proportion) + dir_mod) % STEPS
 
+def statusFlash():
+    while True:
+        STATUS_LED.on()
+        sleep(0.5)
+        STATUS_LED.off()
+        sleep(0.5)
+        STATUS_LED.on()
+
+
 if __name__ == "__main__":
+    status_thread = Thread(target=statusFlash)
+    status_thread.daemon = True
+    status_thread.start()
     tideHeight = Stepper(motor_pin=26, sensor_pin=19)
     neapSpring = Stepper(motor_pin=13, sensor_pin=6)
     ebbFlow = Stepper(motor_pin=5, sensor_pin=11)
