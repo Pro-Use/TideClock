@@ -12,7 +12,7 @@ TABLE = 'Barnstable_2025_2075'
 TOLERANCE = 4
 SECONDS_IN_DAY = 86400
 WINDOW_DAYS = 7.5
-STATUS_LED = OutputDevice(18)
+STATUS_LED = OutputDevice(21)
 
 data_range = False
 data_month_range = False

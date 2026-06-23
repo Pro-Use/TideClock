@@ -2,7 +2,7 @@ import pps_tools
 from gpiozero import OutputDevice
 from time import time, sleep
 
-LED = OutputDevice(22)
+LED = OutputDevice(20)
 ledState = False
 
 with pps_tools.PpsFile("/dev/pps0") as ppsf:
