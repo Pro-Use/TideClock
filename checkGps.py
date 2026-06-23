@@ -15,3 +15,4 @@ with pps_tools.PpsFile("/dev/pps0") as ppsf:
             print(f"LED state: {LED.value}")
         except TimeoutError:
             print("Timeout waiting for PPS signal")
+            LED.off()
