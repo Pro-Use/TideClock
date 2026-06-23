@@ -1,0 +1,12 @@
+[Unit]
+Description=GPS check
+StartLimitIntervalSec=0
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/home/pi/venv/bin/python3 /home/pi/TideClock/checkGps.py
+
+[Install]
+WantedBy=default.target
